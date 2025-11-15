@@ -1,310 +1,59 @@
 # HelpHive
 
-**Connecting elderly and differently-abled citizens with verified volunteers through proximity-based assistance.**
+## Project Overview
+HelpHive connects elderly and differently‑abled residents with verified volunteers for everyday assistance. Users can submit text-based help requests, Claude categorizes and prioritizes them, and volunteers accept tasks via a map-based feed.
 
-HelpHive is a community platform that enables verified elderly and differently-abled citizens to request help from verified volunteers in their area. The platform uses AI-powered request processing, proximity-based matching, and intelligent task prioritization to ensure timely and appropriate assistance.
-
-## 🎯 Project Overview
-
-### Mission
-To create a safe, accessible, and efficient platform that connects those in need with willing volunteers, fostering stronger communities and ensuring no one is left behind.
-
-### MVP Features
-- **Authentication**: Google OAuth login for users and volunteers
-- **Help Request Creation**: Text and photo input with AI-powered processing
-- **Request Response**: Volunteers can respond to and accept help requests
-- **AI-Powered Processing**: Claude API automatically categorizes and prioritizes requests
-- **Proximity-Based Matching**: Volunteers see nearby requests based on location
-
-## 🚀 Quick Start
-
-### Prerequisites
-- Node.js 16+ and npm
-- Firebase account
-- Google Cloud Platform account
-- Anthropic Claude API key
-- Google OAuth credentials
-
-### Installation
-
-1. **Clone the repository**
+## Installation & Setup
+1. **Clone & install**
    ```bash
-   git clone <repository-url>
+   git clone <repo-url>
    cd HelpHive
-   ```
-
-2. **Install dependencies**
-   ```bash
    npm install
    ```
-
-3. **Set up environment variables**
+2. **Environment variables**
    ```bash
    cp env.example .env
    ```
-   Then edit `.env` with your API keys and configuration (see [Integration Guide](./INTEGRATION_GUIDE.md))
-
-4. **Start development server**
+   Fill in Firebase config, Google OAuth/Maps keys, Claude API key, and emergency phone number.
+3. **Run locally**
    ```bash
    npm start
    ```
+   Visit `http://localhost:3000`.
 
-5. **Open in browser**
-   Navigate to `http://localhost:3000`
+## Usage Guide
+1. Sign in with Google (OAuth).
+2. Complete your profile (role, contact info, location).
+3. **Requesters**: go to “New Request”, enter the text description and preferred location source (profile/current/manual), submit.
+4. **Volunteers**: open the map feed, review AI-prioritized cards, and accept tasks. Each acceptance updates the volunteer count and status.
 
-## 📋 Project Structure
+## Tech Stack
+- **Languages**: JavaScript (ES6/JSX), CSS
+- **Frameworks/Libraries**: React 18, React Router DOM, Firebase SDK, @react-oauth/google, @googlemaps/js-api-loader, Jest & React Testing Library, ESLint
+- **APIs/Services**: Google OAuth 2.0, Firebase Authentication, Cloud Firestore, Firebase Storage, Google Maps JavaScript API, Google Places API (via Maps JS SDK), Anthropic Claude API
+- **Tooling**: Create React App, npm, Git/GitHub
 
-```
-HelpHive/
-├── public/
-│   └── index.html          # HTML template
-├── src/
-│   ├── components/         # Reusable components
-│   │   └── PrivateRoute.js
-│   ├── config/            # Configuration files
-│   │   ├── firebase.js    # Firebase setup
-│   │   └── claude.js      # Claude API integration
-│   ├── contexts/          # React contexts
-│   │   └── AuthContext.js # Authentication context
-│   ├── pages/             # Page components
-│   │   ├── Dashboard.js
-│   │   ├── Login.js
-│   │   ├── RequestForm.js
-│   │   ├── RequestList.js
-│   │   ├── VolunteerFeed.js
-│   │   └── Profile.js
-│   ├── App.js             # Main app component
-│   ├── App.css            # Global styles
-│   ├── index.js           # Entry point
-│   └── index.css          # Base styles
-├── .gitignore
-├── package.json
-├── env.example            # Environment variables template
-├── PROJECT_PLAN.md        # Detailed project plan
-├── INTEGRATION_GUIDE.md   # Integration setup guide
-└── README.md              # This file
-```
+## Claude API Integration
+- **Request parsing**: Claude receives raw text request descriptions and returns structured title, category, and urgency.
+- **Task prioritization**: feed requests are sent to Claude with context (distance, urgency) to compute a sorted priority list.
+- Prompting technique: role assignment + JSON schema specification + chain-of-thought example for consistent outputs.
 
-## 🔧 Technology Stack
+## Challenges & Solutions
+| Challenge | Solution | Lessons/Learnings | Next Time |
+|-----------|----------|-------------------|-----------|
+| Prompting Claude reliably | Used structured prompts (role, schema, example) to stabilize JSON output | Prompt engineering is critical for deterministic responses | Standardize prompts before coding integrations |
+| End-to-end integration (Auth → Firestore → Maps/Places) | Wired each service incrementally, tested UI at each stage | Integrations expose schema gaps; incremental testing saves time | Plan integration checkpoints & schemas up front |
+| Geocoding/Places in browser (CORS/key restrictions) | Switched to the Maps JS SDK loader + PlacesService instead of REST fetches | Learned Google Maps platform nuances; script loading matters | Use official SDKs or backend proxies for restricted APIs |
+| Time/scope creep | Focused on MVP flow (auth → request → volunteer) and tracked stretch ideas separately | Prioritization keeps MVP shippable | Finalize feature list before build sprint |
 
-### Frontend
-- **React 18** - UI framework
-- **React Router** - Client-side routing
-- **Firebase SDK** - Backend services
-- **Google OAuth** - Authentication
-- **Google Maps API** - Location services
+## Future Plans
+- Voice input & SMS/Push notifications
+- Real-time Firestore listeners for updates
+- Rating & reputation system
+- Admin verification workflow and trust/safety tooling
 
-### Backend
-- **Firebase Authentication** - User authentication
-- **Cloud Firestore** - NoSQL database
-- **Firebase Storage** - File storage
-- **Claude API** - AI request processing
-
-## 📱 User Types
-
-### 1. Elderly/Differently-abled Citizens
-- Create help requests (text/voice/photo)
-- Track request status
-- Emergency button access
-- Rate volunteers
-
-### 2. Volunteers
-- **Individual Volunteers**: Personal volunteers
-- **Official Services**: NGOs, hospitals, local services
-- View proximity-based requests
-- Respond to and accept requests
-- Rate users
-
-## 🔐 Security & Safety
-
-### Verification System
-- Both users and volunteers require verification
-- Verification status tracked in user profiles
-- Pending verification limits some features
-
-### Security Features
-- **User Verification**: Verification status tracked in user profiles
-- **Location Privacy**: Location data only shared with relevant parties
-
-## 📊 Database Schema
-
-### Collections
-
-#### `users`
-- User profiles with verification status
-- Location data for proximity matching
-- Ratings and statistics
-
-#### `requests`
-- Help requests with AI-processed metadata
-- Status tracking (open, assigned, in_progress, completed)
-- Location and media attachments
-
-#### `responses`
-- Volunteer responses to requests
-- Status tracking
-
-
-See [PROJECT_PLAN.md](./PROJECT_PLAN.md) for detailed schema.
-
-## 🎨 Features in Detail
-
-### Request Creation
-1. User selects input type (text/photo)
-2. Provides request details
-3. Claude API processes and categorizes:
-   - Generates clear title
-   - Categorizes (medical, transportation, shopping, etc.)
-   - Determines urgency level (low, medium, high)
-4. Request posted to feed
-
-### Request Response
-1. Volunteer views nearby requests in feed
-2. Requests are prioritized by Claude API (urgency, proximity, time)
-3. Volunteer clicks "Respond" and adds optional message
-4. Request status updates to "assigned"
-5. Response is saved to database
-
-### Volunteer Feed
-1. Volunteers see nearby requests
-2. Requests prioritized by:
-   - Urgency level
-   - Proximity
-   - Time sensitivity
-   - User needs
-3. Claude API assists in prioritization
-4. Volunteers can respond to requests
-
-### Task Prioritization
-- AI analyzes multiple factors:
-  - Medical emergencies = highest priority
-  - Time-sensitive needs
-  - User history and patterns
-  - Volunteer availability
-
-## 🚧 Current Status: MVP
-
-### MVP Completed ✅
-- ✅ Authentication (Google OAuth)
-- ✅ Help request creation (text/photo input)
-- ✅ Claude API request parsing and categorization
-- ✅ Request response functionality
-- ✅ Volunteer feed with proximity-based requests
-- ✅ Request status tracking
-- ✅ User profile management
-
-### Future Enhancements (Post-MVP) 📋
-- Voice input functionality
-- Google Maps visualization
-- Rating system
-- Real-time notifications
-- Advanced verification workflow
-- In-app messaging
-
-## 📖 Documentation
-
-- **[PROJECT_PLAN.md](./PROJECT_PLAN.md)** - Detailed project plan, timeline, and architecture
-- **[INTEGRATION_GUIDE.md](./INTEGRATION_GUIDE.md)** - Step-by-step integration setup for all APIs
-
-## 🔌 Integration Setup
-
-See [INTEGRATION_GUIDE.md](./INTEGRATION_GUIDE.md) for detailed instructions on:
-1. Firebase project setup
-2. Google OAuth configuration
-3. Google Maps API setup
-4. Claude API integration
-5. Environment variable configuration
-
-## 💰 Monetization Strategy
-
-### Revenue Streams
-1. **Government Subsidies**
-   - Municipal/state grants
-   - Social services partnerships
-
-2. **Company Partnerships**
-   - Hospitals: Referral partnerships
-   - NGOs: Service provider partnerships
-   - Ride Services: Transportation integration
-
-3. **Future Service Fees**
-   - Premium features
-   - Transaction fees
-
-## 📈 Success Metrics
-
-### User Metrics
-- Number of verified users
-- Request completion rate
-- Average response time
-- User satisfaction ratings
-
-### Business Metrics
-- Number of partnerships
-- Government grant applications
-- Service utilization rates
-
-## 🛠️ Development
-
-### Available Scripts
-
-- `npm start` - Start development server
-- `npm build` - Build for production
-- `npm test` - Run tests
-
-### Environment Variables
-
-Required environment variables (see `env.example`):
-- Firebase configuration
-- Google Maps API key
-- Claude API key
-- Google OAuth Client ID
-- Emergency phone number
-
-## 🤝 Contributing
-
-This is an MVP project. Contributions and feedback are welcome!
-
-## 📝 License
-
-[Add your license here]
-
-## 👥 Team & Stakeholders
-
-- **Target Users**: Elderly and differently-abled citizens
-- **Volunteers**: Individual volunteers, NGOs, official services
-- **Partners**: Hospitals, municipal services, ride services
-
-## 🆘 Support
-
-For setup issues, refer to:
-- [Integration Guide](./INTEGRATION_GUIDE.md)
-- [Project Plan](./PROJECT_PLAN.md)
-
-## 🎯 Next Steps
-
-1. **Complete Integration Setup**
-   - Follow [INTEGRATION_GUIDE.md](./INTEGRATION_GUIDE.md)
-   - Set up all API keys
-   - Configure Firebase
-
-2. **Test Core Features**
-   - Authentication flow
-   - Request creation
-   - Volunteer feed
-   - Location services
-
-3. **Implement Missing Features**
-   - Voice input
-   - Google Maps integration
-   - Response workflow
-   - Rating system
-
-4. **Deploy MVP**
-   - Set up production environment
-   - Configure custom domain
-   - Deploy to hosting service
-
----
-
-**Built with ❤️ for stronger communities**
+## Team Members & Contributions
+- **Frontend/UX**: React pages (Login, Dashboard, RequestForm, VolunteerFeed), styling, accessibility. - Sun Kongsonthana nk577
+- **Backend/Integration**: Firebase setup (Auth, Firestore schema, Storage), Google OAuth/Maps/Places integration - Boss Ratchaphon rl896
+- **AI & Prioritization**: Claude prompt design, request parsing, volunteer feed prioritization logic - Boss Ratchaphon rl896
+- **Product & QA**: Feature scoping, documentation, README, and manual testing of request/volunteer flows -  Sun Kongsonthana nk577
