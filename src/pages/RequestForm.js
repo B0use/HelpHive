@@ -116,12 +116,18 @@ const RequestForm = () => {
         updatedAt: serverTimestamp()
       };
 
-      await addDoc(collection(db, 'requests'), requestData);
+      console.log('Creating request with data:', requestData);
+      const docRef = await addDoc(collection(db, 'requests'), requestData);
+      console.log('Request created with ID:', docRef.id);
+
+      // Small delay to ensure Firestore has processed the write
+      await new Promise(resolve => setTimeout(resolve, 500));
 
       navigate('/requests');
     } catch (err) {
       console.error('Error creating request:', err);
       setError(err.message || 'Failed to create request. Please try again.');
+      // Don't navigate on error - let user see the error message
     } finally {
       setIsProcessing(false);
     }

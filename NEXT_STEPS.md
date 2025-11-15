@@ -27,11 +27,11 @@
 Follow the detailed guide in **[INTEGRATION_GUIDE.md](./INTEGRATION_GUIDE.md)**:
 
 #### Step 1: Firebase Setup (30 minutes)
-- [ ] Create Firebase project
-- [ ] Enable Authentication (Google provider)
-- [ ] Create Firestore database
-- [ ] Set up Storage bucket
-- [ ] Copy Firebase config to `.env`
+- [x] Create Firebase project
+- [x] Enable Authentication (Google provider)
+- [x] Create Firestore database
+- [x] Set up Storage bucket
+- [x] Copy Firebase config to `.env`
 
 #### Step 2: Google OAuth (20 minutes)
 - [ ] Create OAuth 2.0 credentials in Google Cloud Console

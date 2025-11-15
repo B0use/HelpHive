@@ -22,23 +22,40 @@ const RequestList = () => {
       setLoading(true);
       const isElderly = userProfile?.userType === 'elderly' || userProfile?.userType === 'differently_abled';
       
-      let q;
+      let querySnapshot;
       if (isElderly) {
         // Show user's own requests
-        q = query(
-          collection(db, 'requests'),
-          where('userId', '==', currentUser.uid),
-          orderBy('createdAt', 'desc')
-        );
+        // Try with orderBy first, fallback to simple query if index missing
+        try {
+          const q = query(
+            collection(db, 'requests'),
+            where('userId', '==', currentUser.uid),
+            orderBy('createdAt', 'desc')
+          );
+          querySnapshot = await getDocs(q);
+        } catch (error) {
+          // Fallback: query without orderBy if index not created
+          console.warn('OrderBy index not found, using simple query:', error);
+          const q = query(
+            collection(db, 'requests'),
+            where('userId', '==', currentUser.uid)
+          );
+          querySnapshot = await getDocs(q);
+        }
       } else {
         // Show requests user has responded to
-        q = query(
-          collection(db, 'requests'),
-          orderBy('createdAt', 'desc')
-        );
+        try {
+          const q = query(
+            collection(db, 'requests'),
+            orderBy('createdAt', 'desc')
+          );
+          querySnapshot = await getDocs(q);
+        } catch (error) {
+          // Fallback: query without orderBy
+          console.warn('OrderBy index not found, using simple query:', error);
+          querySnapshot = await getDocs(collection(db, 'requests'));
+        }
       }
-
-      const querySnapshot = await getDocs(q);
       const requestsData = querySnapshot.docs.map(doc => ({
         id: doc.id,
         ...doc.data()
