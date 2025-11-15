@@ -20,10 +20,13 @@ const VolunteerFeed = () => {
   const [mapError, setMapError] = useState(null);
   const [sortOption, setSortOption] = useState('newest');
   const [geocodeCache, setGeocodeCache] = useState({});
+  const [acceptingRequest, setAcceptingRequest] = useState(null);
+  const [volunteerMessage, setVolunteerMessage] = useState('');
 
   const mapContainerRef = useRef(null);
   const mapRef = useRef(null);
   const markersRef = useRef([]);
+  const requestItemsRef = useRef({});
 
   const GOOGLE_MAPS_API_KEY = process.env.REACT_APP_GOOGLE_MAPS_API_KEY;
 
@@ -97,6 +100,41 @@ const VolunteerFeed = () => {
     loadRequests();
   }, [loadRequests]);
 
+  // Update volunteer location periodically for notification proximity tracking
+  useEffect(() => {
+    if (!currentUser || !userLocation) return;
+
+    const updateLocationInDB = async () => {
+      try {
+        await updateDoc(doc(db, 'users', currentUser.uid), {
+          'location.lat': userLocation.lat,
+          'location.lng': userLocation.lng,
+          'location.lastUpdated': serverTimestamp(),
+          'location.isActive': true
+        });
+        console.log('Location updated for notifications');
+      } catch (error) {
+        console.error('Error updating location:', error);
+      }
+    };
+
+    // Update immediately when page loads
+    updateLocationInDB();
+
+    // Update every 5 minutes while on the page
+    const interval = setInterval(updateLocationInDB, 5 * 60 * 1000);
+
+    // Mark as inactive when leaving the page
+    return () => {
+      clearInterval(interval);
+      if (currentUser) {
+        updateDoc(doc(db, 'users', currentUser.uid), {
+          'location.isActive': false
+        }).catch(error => console.error('Error marking inactive:', error));
+      }
+    };
+  }, [currentUser, userLocation]);
+
   const handleSelectRequest = useCallback((request) => {
     setSelectedRequestId(request.id);
     if (mapRef.current && request.location?.lat && request.location?.lng) {
@@ -104,46 +142,76 @@ const VolunteerFeed = () => {
           {lat: request.location.lat, lng: request.location.lng});
       mapRef.current.setZoom(Math.max(mapRef.current.getZoom(), 13));
     }
+
+    // Scroll to the request item in the list
+    if (requestItemsRef.current[request.id]) {
+      requestItemsRef.current[request.id].scrollIntoView({
+        behavior: 'smooth',
+        block: 'nearest',
+        inline: 'nearest'
+      });
+    }
   }, []);
 
-  const handleRespond = async (requestId, request) => {
-    if (!currentUser) return;
+  const handleRespondClick = (request) => {
+    setAcceptingRequest(request);
+    setVolunteerMessage('');
+  };
 
-    const message = prompt('Add a message to your response (optional):');
-    if (message === null) return;
+  const handleCancelAccept = () => {
+    setAcceptingRequest(null);
+    setVolunteerMessage('');
+  };
+
+  const handleConfirmAccept = async () => {
+    if (!currentUser || !acceptingRequest) return;
+
+    const request = acceptingRequest;
+    const requestId = request.id;
 
     try {
+      // Check if user already accepted this request
+      const assignedVolunteers = Array.isArray(request.assignedVolunteers)
+        ? request.assignedVolunteers
+        : request.assignedTo ? [request.assignedTo] : [];
+
+      if (assignedVolunteers.includes(currentUser.uid)) {
+        alert('You have already accepted this task!');
+        handleCancelAccept();
+        return;
+      }
+
       const responseData = {
         requestId,
         volunteerId: currentUser.uid,
         status: 'pending',
-        message: message || '',
+        message: volunteerMessage || '',
         createdAt: serverTimestamp()
       };
 
       await addDoc(collection(db, 'responses'), responseData);
 
+      const newAssignedVolunteers = [...assignedVolunteers, currentUser.uid];
+      const volunteersNeeded = request.peopleNeeded || request.volunteersNeeded || 1;
+
       const requestRef = doc(db, 'requests', requestId);
       await updateDoc(requestRef, {
-        status:
-            request.volunteersNeeded &&
-                ((Array.isArray(request.assignedVolunteers) ?
-                      request.assignedVolunteers.length :
-                      request.assignedTo ? 1 : 0) +
-             1) >= request.volunteersNeeded ?
-            'assigned' :
-            'open',
+        status: newAssignedVolunteers.length >= volunteersNeeded ? 'assigned' : 'open',
         assignedTo: currentUser.uid,
-        assignedVolunteers: Array.isArray(request.assignedVolunteers) ?
-            [...request.assignedVolunteers, currentUser.uid] :
-            request.assignedTo ?
-            [request.assignedTo, currentUser.uid] :
-            [currentUser.uid],
+        assignedVolunteers: newAssignedVolunteers,
         updatedAt: serverTimestamp()
       });
 
       await loadRequests();
-      alert('Response submitted successfully!');
+
+      const remainingNeeded = volunteersNeeded - newAssignedVolunteers.length;
+      if (remainingNeeded > 0) {
+        alert(`✅ You've accepted this task! ${remainingNeeded} more volunteer${remainingNeeded !== 1 ? 's' : ''} needed.`);
+      } else {
+        alert('✅ Task fully accepted! All volunteers needed have been assigned.');
+      }
+
+      handleCancelAccept();
     } catch (error) {
       console.error('Error responding to request:', error);
       alert('Failed to submit response. Please try again.');
@@ -470,6 +538,7 @@ const VolunteerFeed = () => {
                 {filteredRequests.map((request) => (
                   <div
                     key={request.id}
+                    ref={(el) => requestItemsRef.current[request.id] = el}
                     className={`request-item card ${
                       selectedRequestId === request.id ? 'selected' : ''
                     }`}
@@ -549,7 +618,7 @@ const VolunteerFeed = () => {
                         className='primary-btn'
                         onClick={(e) => {
                           e.stopPropagation();
-                          handleRespond(request.id, request);
+                          handleRespondClick(request);
                         }}
                         disabled={request.status !== 'open'}
                       >
@@ -563,6 +632,51 @@ const VolunteerFeed = () => {
           </div>
         </div>
       </main>
+
+      {/* Accept Task Modal */}
+      {acceptingRequest && (
+        <div className="modal-overlay" onClick={handleCancelAccept}>
+          <div className="modal-content" onClick={(e) => e.stopPropagation()}>
+            <div className="modal-header">
+              <h2>Accept Task</h2>
+              <button className="modal-close" onClick={handleCancelAccept}>×</button>
+            </div>
+            <div className="modal-body">
+              <h3>{acceptingRequest.title}</h3>
+              <p className="modal-description">{acceptingRequest.description}</p>
+
+              <div className="volunteer-count-info">
+                <span className="people-icon">👥</span>
+                <span className="volunteer-count-text">
+                  {renderVolunteerCount(acceptingRequest)} volunteers
+                </span>
+              </div>
+
+              <div className="form-group">
+                <label htmlFor="volunteerMessage">
+                  Add a message (optional)
+                </label>
+                <textarea
+                  id="volunteerMessage"
+                  value={volunteerMessage}
+                  onChange={(e) => setVolunteerMessage(e.target.value)}
+                  placeholder="Let them know when you can help, any questions, etc..."
+                  rows={4}
+                  className="message-textarea"
+                />
+              </div>
+            </div>
+            <div className="modal-actions">
+              <button className="btn btn-secondary" onClick={handleCancelAccept}>
+                Cancel
+              </button>
+              <button className="btn btn-primary" onClick={handleConfirmAccept}>
+                Confirm & Accept Task
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
                         }

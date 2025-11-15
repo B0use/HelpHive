@@ -100,6 +100,111 @@
   border-top: 1px dashed var(--color-border);
 }
 
+/* Urgency badges with color coding */
+.urgency-badge {
+  display: inline-block;
+  padding: 4px 12px;
+  border-radius: 12px;
+  font-size: 12px;
+  font-weight: 600;
+  text-transform: capitalize;
+}
+
+.urgency-low {
+  background-color: #e8f5e9;
+  color: #2e7d32;
+}
+
+.urgency-medium {
+  background-color: #fffbea;
+  color: #b8860b;
+}
+
+.urgency-high {
+  background-color: #ffebee;
+  color: #c62828;
+}
+
+.urgency-emergency {
+  background-color: #d32f2f;
+  color: white;
+  animation: pulse 2s infinite;
+}
+
+@keyframes pulse {
+  0%, 100% { opacity: 1; }
+  50% { opacity: 0.7; }
+}
+
+/* Status badges with color coding */
+.status-badge {
+  display: inline-block;
+  padding: 4px 12px;
+  border-radius: 12px;
+  font-size: 12px;
+  font-weight: 600;
+  text-transform: capitalize;
+}
+
+.status-open {
+  background-color: #e3f2fd;
+  color: #1565c0;
+}
+
+.status-assigned {
+  background-color: #f3e5f5;
+  color: #6a1b9a;
+}
+
+.status-in_progress {
+  background-color: #fff9c4;
+  color: #f57f17;
+}
+
+.status-completed {
+  background-color: #e8f5e9;
+  color: #2e7d32;
+}
+
+.status-cancelled {
+  background-color: #eeeeee;
+  color: #616161;
+}
+
+/* Task tags with varied color coding based on keywords */
+.task-tags {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+  margin-top: 4px;
+}
+
+.task-tag {
+  display: inline-block;
+  padding: 4px 10px;
+  border-radius: 12px;
+  font-size: 12px;
+  font-weight: 500;
+  background-color: #e0f2f1;
+  color: #00695c;
+}
+
+/* Category-based coloring for common task types */
+.task-tag:nth-child(3n+1) {
+  background-color: #e1f5fe;
+  color: #01579b;
+}
+
+.task-tag:nth-child(3n+2) {
+  background-color: #f3e5f5;
+  color: #4a148c;
+}
+
+.task-tag:nth-child(3n+3) {
+  background-color: #fff3e0;
+  color: #e65100;
+}
+
 @media (max-width: 768px) {
   .requests-grid {
     grid-template-columns: 1fr;

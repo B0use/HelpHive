@@ -3,6 +3,7 @@ import { useNavigate, useSearchParams } from 'react-router-dom';
 import { useAuth } from '../contexts/AuthContext';
 import { doc, updateDoc, getDoc } from 'firebase/firestore';
 import { db } from '../config/firebase';
+import LocationInput from '../components/LocationInput';
 import './Profile.css';
 
 const Profile = () => {
@@ -15,6 +16,12 @@ const Profile = () => {
     phoneNumber: '',
     address: ''
   });
+  const [location, setLocation] = useState(null);
+  const [notificationPrefs, setNotificationPrefs] = useState({
+    urgentTasksNearby: true,
+    maxRadius: 5,
+    urgencyLevels: ['high', 'emergency']
+  });
   const [saving, setSaving] = useState(false);
   const [message, setMessage] = useState('');
 
@@ -26,8 +33,20 @@ const Profile = () => {
         phoneNumber: userProfile.phoneNumber || '',
         address: userProfile.address || ''
       });
+      // Set location if it exists in profile
+      if (userProfile.location) {
+        setLocation(userProfile.location);
+      }
+      // Set notification preferences if they exist
+      if (userProfile.notificationPreferences) {
+        setNotificationPrefs(userProfile.notificationPreferences);
+      }
     }
   }, [userProfile, searchParams]);
+
+  const handleLocationSelect = (selectedLocation) => {
+    setLocation(selectedLocation);
+  };
 
   const handleSubmit = async (e) => {
     e.preventDefault();
@@ -35,9 +54,18 @@ const Profile = () => {
     setMessage('');
 
     try {
+      // Validate location is captured
+      if (!location) {
+        setMessage('Please capture your location for proximity matching.');
+        setSaving(false);
+        return;
+      }
+
       const userRef = doc(db, 'users', currentUser.uid);
       await updateDoc(userRef, {
         ...formData,
+        location: location, // Save location with lat, lng, and address
+        notificationPreferences: notificationPrefs, // Save notification preferences
         updatedAt: new Date()
       });
 
@@ -103,15 +131,69 @@ const Profile = () => {
           </div>
 
           <div className="form-group">
-            <label htmlFor="address">Address</label>
-            <input
-              type="text"
-              id="address"
-              value={formData.address}
-              onChange={(e) => setFormData({ ...formData, address: e.target.value })}
-              placeholder="Your address for proximity matching"
+            <label>Location (for proximity matching)</label>
+            <LocationInput
+              onLocationSelect={handleLocationSelect}
+              initialLocation={location}
+              autoLoad={!location} // Auto-load if no location exists
             />
+            <p className="help-text" style={{ marginTop: '8px', fontSize: '12px', color: '#666' }}>
+              Your location helps match you with nearby requests. Location is automatically captured.
+            </p>
           </div>
+
+          {formData.userType === 'volunteer' && (
+            <div className="notification-settings card" style={{
+              padding: '20px',
+              marginTop: '20px',
+              background: 'rgba(255, 234, 162, 0.15)',
+              border: '1px solid rgba(255, 220, 150, 0.4)',
+              borderRadius: '16px'
+            }}>
+              <h3 style={{ marginTop: 0, marginBottom: '16px', color: 'var(--color-text)' }}>
+                Email Notifications
+              </h3>
+
+              <div className="form-group" style={{ marginBottom: '16px' }}>
+                <label style={{ display: 'flex', alignItems: 'center', gap: '10px', cursor: 'pointer' }}>
+                  <input
+                    type="checkbox"
+                    checked={notificationPrefs.urgentTasksNearby}
+                    onChange={(e) => setNotificationPrefs({
+                      ...notificationPrefs,
+                      urgentTasksNearby: e.target.checked
+                    })}
+                    style={{ width: '20px', height: '20px', cursor: 'pointer' }}
+                  />
+                  <span style={{ fontWeight: 'normal' }}>
+                    Email me about urgent tasks near my location
+                  </span>
+                </label>
+              </div>
+
+              {notificationPrefs.urgentTasksNearby && (
+                <div className="radius-setting" style={{ marginLeft: '30px' }}>
+                  <label style={{ display: 'block', marginBottom: '8px', fontWeight: '600' }}>
+                    Notification radius: {notificationPrefs.maxRadius} km
+                  </label>
+                  <input
+                    type="range"
+                    min="1"
+                    max="20"
+                    value={notificationPrefs.maxRadius}
+                    onChange={(e) => setNotificationPrefs({
+                      ...notificationPrefs,
+                      maxRadius: parseInt(e.target.value)
+                    })}
+                    style={{ width: '100%', cursor: 'pointer' }}
+                  />
+                  <p className="help-text" style={{ marginTop: '8px', fontSize: '12px', color: '#666' }}>
+                    You'll receive emails when urgent tasks are posted within {notificationPrefs.maxRadius} km of your location (max 3 emails per hour).
+                  </p>
+                </div>
+              )}
+            </div>
+          )}
 
           {userProfile?.verificationStatus && (
             <div className="verification-status">

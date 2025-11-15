@@ -2,6 +2,7 @@
   "name": "helphive",
   "version": "0.1.0",
   "private": true,
+  "proxy": "http://localhost:4000",
   "dependencies": {
     "@googlemaps/js-api-loader": "^2.0.2",
     "@react-oauth/google": "^0.12.1",

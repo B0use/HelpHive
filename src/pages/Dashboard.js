@@ -15,6 +15,9 @@ const Dashboard = () => {
       <header className="dashboard-header">
         <h1>HelpHive</h1>
         <div className="header-actions">
+          <button onClick={() => navigate('/test/claude')} className="btn btn-secondary" style={{ fontSize: '14px' }}>
+            Test Claude
+          </button>
           <button onClick={() => navigate('/profile')} className="btn btn-secondary">
             Profile
           </button>

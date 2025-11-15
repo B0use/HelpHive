@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useAuth } from '../contexts/AuthContext';
-import { collection, query, where, getDocs, orderBy } from 'firebase/firestore';
+import { collection, query, where, getDocs, orderBy, doc, updateDoc, serverTimestamp } from 'firebase/firestore';
 import { db } from '../config/firebase';
 import './RequestList.css';
 
@@ -68,6 +68,23 @@ const RequestList = () => {
     }
   };
 
+  const handleResolve = async (requestId) => {
+    if (!window.confirm('Mark this request as resolved? This will set the status to "resolved".')) return;
+    try {
+      const ref = doc(db, 'requests', requestId);
+      await updateDoc(ref, {
+        status: 'resolved',
+        resolvedAt: serverTimestamp(),
+        updatedAt: serverTimestamp()
+      });
+      // Refresh list
+      await loadRequests();
+    } catch (error) {
+      console.error('Error marking request resolved:', error);
+      alert('Failed to mark request as resolved. Please try again.');
+    }
+  };
+
   const formatDate = (timestamp) => {
     if (!timestamp) return 'Unknown';
     const date = timestamp.toDate ? timestamp.toDate() : new Date(timestamp);
@@ -99,7 +116,7 @@ const RequestList = () => {
           </div>
         ) : (
           <div className="requests-grid">
-            {requests.map((request) => (
+                {requests.map((request) => (
               <div key={request.id} className="request-card card">
                 <div className="request-header">
                   <h3>{request.title}</h3>
@@ -117,6 +134,21 @@ const RequestList = () => {
                   <div className="meta-item">
                     <strong>Category:</strong> {request.category}
                   </div>
+                  {request.peopleNeeded && (
+                    <div className="meta-item">
+                      <strong>People Needed:</strong> {request.peopleNeeded}
+                    </div>
+                  )}
+                  {request.taskTypes && request.taskTypes.length > 0 && (
+                    <div className="meta-item">
+                      <strong>Tasks:</strong>
+                      <div className="task-tags">
+                        {request.taskTypes.map((task, idx) => (
+                          <span key={idx} className="task-tag">{task}</span>
+                        ))}
+                      </div>
+                    </div>
+                  )}
                   <div className="meta-item">
                     <strong>Created:</strong> {formatDate(request.createdAt)}
                   </div>
@@ -131,7 +163,18 @@ const RequestList = () => {
                     <strong>Photos:</strong> {request.photos.length} attached
                   </div>
                 )}
-              </div>
+                  <div className="request-actions-row">
+                    {/* If the current user is the owner and request is not resolved, show Resolve button */}
+                    {currentUser && request.userId === currentUser.uid && request.status !== 'resolved' && (
+                      <button
+                        className="btn btn-secondary small"
+                        onClick={() => handleResolve(request.id)}
+                      >
+                        Mark Resolved
+                      </button>
+                    )}
+                  </div>
+                </div>
             ))}
           </div>
         )}

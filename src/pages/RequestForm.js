@@ -328,13 +328,16 @@ const RequestForm = () => {
         }
       }
 
-      // Create request document
+      // Ensure required fields are defined and create request document
+      const titleText = (processedRequest && processedRequest.title) || (textInput && textInput.trim().slice(0, 100)) || 'Help Request';
       const requestData = {
         userId: currentUser.uid,
-        title: processedRequest.title,
-        description: processedRequest.description || textInput,
+        title: titleText,
+        description: (processedRequest && processedRequest.description) || textInput,
         category: processedRequest.category || 'general',
         urgencyLevel: processedRequest.urgencyLevel || 'medium',
+        peopleNeeded: processedRequest.peopleNeeded || 1,
+        taskTypes: processedRequest.taskTypes || [],
         status: 'open',
         location: location
           ? {
@@ -346,6 +349,11 @@ const RequestForm = () => {
         createdAt: serverTimestamp(),
         updatedAt: serverTimestamp()
       };
+
+      console.log('Claude processed request:', {
+        original: textInput,
+        processed: processedRequest
+      });
 
       console.log('Creating request with data:', requestData);
       const docRef = await addDoc(collection(db, 'requests'), requestData);

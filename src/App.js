@@ -9,6 +9,7 @@ import RequestForm from './pages/RequestForm';
 import RequestList from './pages/RequestList';
 import VolunteerFeed from './pages/VolunteerFeed';
 import Profile from './pages/Profile';
+import ClaudeTest from './pages/ClaudeTest';
 import './App.css';
 
 const GOOGLE_CLIENT_ID = process.env.REACT_APP_GOOGLE_CLIENT_ID;
@@ -67,6 +68,14 @@ function App() {
                 element={
                   <PrivateRoute>
                     <Profile />
+                  </PrivateRoute>
+                }
+              />
+              <Route
+                path="/test/claude"
+                element={
+                  <PrivateRoute>
+                    <ClaudeTest />
                   </PrivateRoute>
                 }
               />

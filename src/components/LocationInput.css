@@ -1,0 +1,54 @@
+.location-input {
+  margin-bottom: 24px;
+}
+
+.current-location-section {
+  min-height: 60px;
+}
+
+.location-loading {
+  color: #2196F3;
+  font-size: 14px;
+  padding: 8px 0;
+}
+
+.location-display {
+  background-color: #e8f5e9;
+  color: #2e7d32;
+  padding: 12px 16px;
+  border-radius: 8px;
+  margin-top: 8px;
+  font-size: 14px;
+  line-height: 1.5;
+}
+
+.location-error {
+  background-color: #ffebee;
+  color: #c62828;
+  padding: 12px 16px;
+  border-radius: 8px;
+  margin-top: 8px;
+  font-size: 14px;
+}
+
+.location-warning {
+  background-color: #fff3e0;
+  color: #e65100;
+  padding: 8px 12px;
+  border-radius: 8px;
+  margin-top: 8px;
+  font-size: 12px;
+}
+
+.btn-small {
+  padding: 6px 12px;
+  font-size: 14px;
+}
+
+.location-display small {
+  display: block;
+  margin-top: 4px;
+  color: #666;
+  font-size: 12px;
+}
+

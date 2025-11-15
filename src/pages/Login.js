@@ -21,6 +21,7 @@ const Login = () => {
   return (
     <div className="login-container">
       <div className="login-card">
+        <img src="/logo.png" alt="HelpHive logo" className="login-logo" />
         <h1>HelpHive</h1>
         <p className="subtitle">Connecting communities, one request at a time</p>
         <GoogleLogin
