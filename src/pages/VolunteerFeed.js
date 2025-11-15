@@ -1,10 +1,12 @@
-import React, { useState, useEffect } from 'react';
-import { useNavigate } from 'react-router-dom';
-import { useAuth } from '../contexts/AuthContext';
-import { collection, query, where, getDocs, orderBy, limit, addDoc, updateDoc, doc, serverTimestamp } from 'firebase/firestore';
-import { db } from '../config/firebase';
-import { prioritizeTasks } from '../config/claude';
 import './VolunteerFeed.css';
+
+import {addDoc, collection, doc, getDocs, limit, orderBy, query, serverTimestamp, updateDoc, where} from 'firebase/firestore';
+import React, {useEffect, useState} from 'react';
+import {useNavigate} from 'react-router-dom';
+
+import {prioritizeTasks} from '../config/claude';
+import {db} from '../config/firebase';
+import {useAuth} from '../contexts/AuthContext';
 
 const VolunteerFeed = () => {
   const navigate = useNavigate();
@@ -59,14 +61,24 @@ const VolunteerFeed = () => {
     try {
       setLoading(true);
       // Only show open requests (not assigned or completed)
-      const q = query(
-        collection(db, 'requests'),
-        where('status', '==', 'open'),
-        orderBy('createdAt', 'desc'),
-        limit(50)
-      );
-
-      const querySnapshot = await getDocs(q);
+      let querySnapshot;
+      try {
+        const q = query(
+          collection(db, 'requests'),
+          where('status', '==', 'open'),
+          orderBy('createdAt', 'desc'),
+          limit(50)
+        );
+        querySnapshot = await getDocs(q);
+      } catch (error) {
+        console.warn('OrderBy index not found for volunteer feed, using simple query:', error);
+        const q = query(
+          collection(db, 'requests'),
+          where('status', '==', 'open'),
+          limit(50)
+        );
+        querySnapshot = await getDocs(q);
+      }
       let requestsData = querySnapshot.docs.map(doc => {
         const data = doc.data();
         const distance = userLocation && data.location
@@ -139,52 +151,52 @@ const VolunteerFeed = () => {
   };
 
   return (
-    <div className="volunteer-feed-page">
-      <header className="page-header">
-        <button onClick={() => navigate('/dashboard')} className="back-btn">
+    <div className='volunteer-feed-page'>
+      <header className='page-header'>
+        <button onClick={() => navigate('/dashboard')} className='back-btn'>
           ← Back
         </button>
         <h1>Volunteer Feed</h1>
-        <button onClick={loadRequests} className="btn btn-secondary">
+        <button onClick={loadRequests} className='btn btn-secondary'>
           Refresh
         </button>
       </header>
 
-      <main className="volunteer-feed-container">
+      <main className='volunteer-feed-container'>
         {loading ? (
-          <div className="loading">Loading nearby requests...</div>
+          <div className='loading'>Loading nearby requests...</div>
         ) : requests.length === 0 ? (
           <div className="empty-state card">
             <h3>No requests available</h3>
             <p>There are no open help requests in your area at the moment.</p>
           </div>
         ) : (
-          <div className="requests-list">
+          <div className='requests-list'>
             {requests.map((request) => (
-              <div key={request.id} className="request-item card">
-                <div className="request-header">
+              <div key={request.id} className='request-item card'>
+                <div className='request-header'>
                   <h3>{request.title}</h3>
                   <div className="badges">
                     <span className={`urgency-badge urgency-${request.urgencyLevel}`}>
                       {request.urgencyLevel}
                     </span>
                     {request.distance !== null && (
-                      <span className="distance-badge">
+                      <span className='distance-badge'>
                         {request.distance.toFixed(1)} km away
                       </span>
                     )}
                   </div>
                 </div>
                 <p className="request-description">{request.description}</p>
-                <div className="request-meta">
-                  <div className="meta-item">
+                <div className='request-meta'>
+                  <div className='meta-item'>
                     <strong>Category:</strong> {request.category}
                   </div>
-                  <div className="meta-item">
+                  <div className='meta-item'>
                     <strong>Created:</strong> {formatDate(request.createdAt)}
                   </div>
                   {request.location?.address && (
-                    <div className="meta-item">
+                    <div className='meta-item'>
                       <strong>Location:</strong> {request.location.address}
                     </div>
                   )}
@@ -209,4 +221,3 @@ const VolunteerFeed = () => {
 };
 
 export default VolunteerFeed;
-
