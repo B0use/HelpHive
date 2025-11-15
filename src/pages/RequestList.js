@@ -3,7 +3,6 @@ import { useNavigate } from 'react-router-dom';
 import { useAuth } from '../contexts/AuthContext';
 import { collection, query, where, getDocs, orderBy } from 'firebase/firestore';
 import { db } from '../config/firebase';
-import EmergencyButton from '../components/EmergencyButton';
 import './RequestList.css';
 
 const RequestList = () => {
@@ -121,7 +120,6 @@ const RequestList = () => {
         )}
       </main>
 
-      <EmergencyButton />
     </div>
   );
 };

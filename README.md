@@ -9,12 +9,12 @@ HelpHive is a community platform that enables verified elderly and differently-a
 ### Mission
 To create a safe, accessible, and efficient platform that connects those in need with willing volunteers, fostering stronger communities and ensuring no one is left behind.
 
-### Key Features
-- **Multi-modal Request Creation**: Text, voice, and photo input options
+### MVP Features
+- **Authentication**: Google OAuth login for users and volunteers
+- **Help Request Creation**: Text and photo input with AI-powered processing
+- **Request Response**: Volunteers can respond to and accept help requests
 - **AI-Powered Processing**: Claude API automatically categorizes and prioritizes requests
 - **Proximity-Based Matching**: Volunteers see nearby requests based on location
-- **Safety Features**: Emergency button, user verification, rating system
-- **Real-time Status Updates**: Track request progress from creation to completion
 
 ## 🚀 Quick Start
 
@@ -60,7 +60,6 @@ HelpHive/
 │   └── index.html          # HTML template
 ├── src/
 │   ├── components/         # Reusable components
-│   │   ├── EmergencyButton.js
 │   │   └── PrivateRoute.js
 │   ├── config/            # Configuration files
 │   │   ├── firebase.js    # Firebase setup
@@ -123,9 +122,8 @@ HelpHive/
 - Verification status tracked in user profiles
 - Pending verification limits some features
 
-### Safety Features
-- **Emergency Button**: Direct connection to local emergency services
-- **Rating System**: Users and volunteers can rate each other
+### Security Features
+- **User Verification**: Verification status tracked in user profiles
 - **Location Privacy**: Location data only shared with relevant parties
 
 ## 📊 Database Schema
@@ -146,22 +144,26 @@ HelpHive/
 - Volunteer responses to requests
 - Status tracking
 
-#### `ratings`
-- User-to-user ratings
-- Comments and feedback
 
 See [PROJECT_PLAN.md](./PROJECT_PLAN.md) for detailed schema.
 
 ## 🎨 Features in Detail
 
 ### Request Creation
-1. User selects input type (text/voice/photo)
+1. User selects input type (text/photo)
 2. Provides request details
 3. Claude API processes and categorizes:
    - Generates clear title
    - Categorizes (medical, transportation, shopping, etc.)
-   - Determines urgency level (low, medium, high, emergency)
+   - Determines urgency level (low, medium, high)
 4. Request posted to feed
+
+### Request Response
+1. Volunteer views nearby requests in feed
+2. Requests are prioritized by Claude API (urgency, proximity, time)
+3. Volunteer clicks "Respond" and adds optional message
+4. Request status updates to "assigned"
+5. Response is saved to database
 
 ### Volunteer Feed
 1. Volunteers see nearby requests
@@ -182,29 +184,22 @@ See [PROJECT_PLAN.md](./PROJECT_PLAN.md) for detailed schema.
 
 ## 🚧 Current Status: MVP
 
-### Completed ✅
-- Project structure and configuration
-- React frontend with routing
-- Firebase integration setup
-- Authentication system
-- Basic UI components
-- Request creation flow
-- Volunteer feed
-- Profile management
+### MVP Completed ✅
+- ✅ Authentication (Google OAuth)
+- ✅ Help request creation (text/photo input)
+- ✅ Claude API request parsing and categorization
+- ✅ Request response functionality
+- ✅ Volunteer feed with proximity-based requests
+- ✅ Request status tracking
+- ✅ User profile management
 
-### In Progress 🚧
+### Future Enhancements (Post-MVP) 📋
 - Voice input functionality
-- Google Maps integration
-- Real-time location tracking
-- Response/acceptance workflow
-- Rating system implementation
-
-### Planned 📋
+- Google Maps visualization
+- Rating system
+- Real-time notifications
 - Advanced verification workflow
-- Push notifications
 - In-app messaging
-- Analytics dashboard
-- Admin panel
 
 ## 📖 Documentation
 

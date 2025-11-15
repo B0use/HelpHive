@@ -1,10 +1,9 @@
 import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useAuth } from '../contexts/AuthContext';
-import { collection, query, where, getDocs, orderBy, limit } from 'firebase/firestore';
+import { collection, query, where, getDocs, orderBy, limit, addDoc, updateDoc, doc, serverTimestamp } from 'firebase/firestore';
 import { db } from '../config/firebase';
 import { prioritizeTasks } from '../config/claude';
-import EmergencyButton from '../components/EmergencyButton';
 import './VolunteerFeed.css';
 
 const VolunteerFeed = () => {
@@ -59,6 +58,7 @@ const VolunteerFeed = () => {
   const loadRequests = async () => {
     try {
       setLoading(true);
+      // Only show open requests (not assigned or completed)
       const q = query(
         collection(db, 'requests'),
         where('status', '==', 'open'),
@@ -97,8 +97,39 @@ const VolunteerFeed = () => {
   };
 
   const handleRespond = async (requestId) => {
-    // TODO: Implement response functionality
-    alert('Response functionality coming soon!');
+    if (!currentUser) return;
+
+    const message = prompt('Add a message to your response (optional):');
+    if (message === null) return; // User cancelled
+
+    try {
+      // Create response document
+      const responseData = {
+        requestId: requestId,
+        volunteerId: currentUser.uid,
+        status: 'pending',
+        message: message || '',
+        createdAt: serverTimestamp()
+      };
+
+      await addDoc(collection(db, 'responses'), responseData);
+
+      // Update request status to 'assigned'
+      const requestRef = doc(db, 'requests', requestId);
+      await updateDoc(requestRef, {
+        status: 'assigned',
+        assignedTo: currentUser.uid,
+        updatedAt: serverTimestamp()
+      });
+
+      // Reload requests to reflect changes
+      await loadRequests();
+      
+      alert('Response submitted successfully!');
+    } catch (error) {
+      console.error('Error responding to request:', error);
+      alert('Failed to submit response. Please try again.');
+    }
   };
 
   const formatDate = (timestamp) => {
@@ -162,8 +193,9 @@ const VolunteerFeed = () => {
                   <button
                     className="btn btn-primary"
                     onClick={() => handleRespond(request.id)}
+                    disabled={request.status !== 'open'}
                   >
-                    Respond
+                    {request.status === 'open' ? 'Respond' : 'Already Assigned'}
                   </button>
                 </div>
               </div>
@@ -172,7 +204,6 @@ const VolunteerFeed = () => {
         )}
       </main>
 
-      <EmergencyButton />
     </div>
   );
 };

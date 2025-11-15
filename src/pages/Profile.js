@@ -3,7 +3,6 @@ import { useNavigate, useSearchParams } from 'react-router-dom';
 import { useAuth } from '../contexts/AuthContext';
 import { doc, updateDoc, getDoc } from 'firebase/firestore';
 import { db } from '../config/firebase';
-import EmergencyButton from '../components/EmergencyButton';
 import './Profile.css';
 
 const Profile = () => {
@@ -148,7 +147,6 @@ const Profile = () => {
         </form>
       </main>
 
-      <EmergencyButton />
     </div>
   );
 };

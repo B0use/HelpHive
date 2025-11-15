@@ -5,7 +5,6 @@ import { collection, addDoc, serverTimestamp } from 'firebase/firestore';
 import { ref, uploadBytes, getDownloadURL } from 'firebase/storage';
 import { db, storage } from '../config/firebase';
 import { processRequestWithClaude } from '../config/claude';
-import EmergencyButton from '../components/EmergencyButton';
 import './RequestForm.css';
 
 const RequestForm = () => {
@@ -22,18 +21,45 @@ const RequestForm = () => {
     setPhotos(files);
   };
 
+  const getLocation = () => {
+    return new Promise((resolve) => {
+      if (navigator.geolocation) {
+        navigator.geolocation.getCurrentPosition(
+          (position) => {
+            resolve({
+              lat: position.coords.latitude,
+              lng: position.coords.longitude,
+              address: 'Current Location' // Can add reverse geocoding later if needed
+            });
+          },
+          (error) => {
+            console.warn('Location access denied or unavailable:', error);
+            // Fallback: user can manually enter location later
+            resolve({
+              lat: 0,
+              lng: 0,
+              address: 'Location unavailable - will be set manually'
+            });
+          }
+        );
+      } else {
+        resolve({
+          lat: 0,
+          lng: 0,
+          address: 'Location unavailable'
+        });
+      }
+    });
+  };
+
   const handleSubmit = async (e) => {
     e.preventDefault();
     setIsProcessing(true);
     setError(null);
 
     try {
-      // Get user's current location (simplified - in production, use geolocation API)
-      const location = {
-        lat: 0, // TODO: Get from geolocation
-        lng: 0, // TODO: Get from geolocation
-        address: 'Current Location' // TODO: Get from geocoding
-      };
+      // Get user's current location using FREE browser geolocation API
+      const location = await getLocation();
 
       // Process input with Claude API
       let processedRequest;
@@ -215,7 +241,6 @@ const RequestForm = () => {
         </form>
       </main>
 
-      <EmergencyButton />
     </div>
   );
 };
