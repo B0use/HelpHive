@@ -1,0 +1,26 @@
+.emergency-btn {
+  position: fixed;
+  bottom: 24px;
+  right: 24px;
+  width: 64px;
+  height: 64px;
+  border-radius: 50%;
+  background-color: #f44336;
+  color: white;
+  border: none;
+  font-size: 24px;
+  cursor: pointer;
+  box-shadow: 0 4px 12px rgba(244, 67, 54, 0.4);
+  z-index: 1000;
+  transition: all 0.3s ease;
+}
+
+.emergency-btn:hover {
+  transform: scale(1.1);
+  box-shadow: 0 6px 16px rgba(244, 67, 54, 0.6);
+}
+
+.emergency-btn:active {
+  transform: scale(0.95);
+}
+
